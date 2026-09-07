@@ -4,28 +4,21 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: #ffffff;
-    --foreground: #0f172a;
-  }
-
-  * {
-    box-sizing: border-box;
-  }
+  * { box-sizing: border-box; }
 
   body {
-    @apply bg-white text-slate-900 font-sans antialiased;
+    @apply bg-slate-50 text-slate-900 font-sans antialiased;
   }
 
-  /* Accessible focus ring — visible for keyboard users */
+  /* Respect reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-brand-600;
-  }
-}
-
-@layer utilities {
-  /* Prose width used for readable long-form content */
-  .prose-width {
-    max-width: 65ch;
+    @apply outline-2 outline-offset-2 outline-blue-600;
   }
 }

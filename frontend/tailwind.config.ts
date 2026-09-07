@@ -7,26 +7,23 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // FairLoan design tokens — calm, trustworthy, not aggressive fintech
         brand: {
-          50:  "#f0fdf4",
-          100: "#dcfce7",
-          200: "#bbf7d0",
-          500: "#22c55e",
-          600: "#16a34a",
-          700: "#15803d",
-          900: "#14532d",
+          50:  "#eff6ff",
+          100: "#dbeafe",
+          200: "#bfdbfe",
+          400: "#60a5fa",
+          500: "#3b82f6",
+          600: "#2563eb",
+          700: "#1d4ed8",
+          900: "#1e3a8a",
         },
-        warning: {
-          50:  "#fffbeb",
-          200: "#fde68a",
-          600: "#d97706",
+        navy: {
+          900: "#0f1f3d",
+          800: "#162844",
+          700: "#1e3a6e",
         },
-        danger: {
-          50:  "#fef2f2",
-          200: "#fecaca",
-          600: "#dc2626",
-        },
+        warning: { 50: "#fffbeb", 200: "#fde68a", 600: "#d97706" },
+        danger:  { 50: "#fef2f2", 200: "#fecaca", 600: "#dc2626" },
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
@@ -34,6 +31,7 @@ module.exports = {
       borderRadius: {
         xl: "1rem",
         "2xl": "1.5rem",
+        "3xl": "2rem",
       },
     },
   },

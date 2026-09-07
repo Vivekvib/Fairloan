@@ -22,7 +22,6 @@ interface FormErrors {
   employment_tenure_months?: string;
   requested_amount?: string;
   existing_monthly_emi?: string;
-  loan_tenure_months?: string;
   _form?: string;
 }
 
@@ -39,20 +38,15 @@ export default function EligibilityForm() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
-  // Track whether form was started for analytics (fire-and-forget)
-  const [started, setStarted] = useState(false);
 
+  // Item 0: isNumeric=true on all monetary fields — no type="number" anywhere
   const handleChange = useCallback(
-    (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      if (!started) {
-        setStarted(true);
-        // AC: track eligibility_form_started event
-      }
-      setForm((prev) => ({ ...prev, [field]: e.target.value }));
-      // Clear field error on change
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    },
-    [started]
+    (field: keyof FormState) =>
+      (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        setForm((prev) => ({ ...prev, [field]: e.target.value }));
+        setErrors((prev) => ({ ...prev, [field]: undefined }));
+      },
+    []
   );
 
   const validate = (): FormErrors => {
@@ -74,8 +68,7 @@ export default function EligibilityForm() {
       errs.existing_monthly_emi = "Existing EMI cannot be negative.";
     if (income > 0 && emi >= income)
       errs.existing_monthly_emi =
-        "Your existing obligations already meet or exceed your stated income. Please check the values.";
-
+        "Your existing obligations already meet or exceed your stated income.";
     return errs;
   };
 
@@ -84,12 +77,10 @@ export default function EligibilityForm() {
     const errs = validate();
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
-      // Move focus to first error — AC-9 (accessibility)
-      const firstErrorKey = Object.keys(errs)[0] as keyof FormErrors;
-      document.getElementById(firstErrorKey)?.focus();
+      const firstKey = Object.keys(errs)[0] as keyof FormErrors;
+      document.getElementById(firstKey)?.focus();
       return;
     }
-
     setSubmitting(true);
     try {
       const result = await checkEligibility({
@@ -99,17 +90,12 @@ export default function EligibilityForm() {
         existing_monthly_emi: Number(form.existing_monthly_emi),
         loan_tenure_months: Number(form.loan_tenure_months),
       });
-
-      // Store result in sessionStorage so the result page can read it
       sessionStorage.setItem("eligibility_result", JSON.stringify(result));
       router.push("/eligibility/result");
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Something went wrong on our side. Please try again.";
+    } catch {
       setErrors({
-        _form:
-          "Something went wrong on our side. Your inputs have not been saved. Please try again.",
+        _form: "Something went wrong on our side. Your inputs have not been saved. Please try again.",
       });
-      console.error(message);
     } finally {
       setSubmitting(false);
     }
@@ -119,137 +105,108 @@ export default function EligibilityForm() {
   const tenure = Number(form.loan_tenure_months) || 12;
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      noValidate
-      aria-label="Eligibility pre-check form"
-      className="flex flex-col gap-6"
-    >
-      {/* Credit check note — AC-E1 */}
-      <div
-        role="note"
-        className="flex gap-2 bg-brand-50 border border-brand-100 rounded-xl px-4 py-3"
-      >
-        <ShieldCheck
-          size={16}
-          className="text-brand-700 shrink-0 mt-0.5"
-          aria-hidden="true"
-        />
-        <p className="text-xs text-brand-800">{CREDIT_CHECK_NOTE}</p>
+    <form onSubmit={handleSubmit} noValidate aria-label="Eligibility pre-check form"
+      className="flex flex-col gap-6">
+
+      {/* Credit check disclaimer */}
+      <div role="note"
+        className="flex gap-2 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
+        <ShieldCheck size={16} className="text-blue-600 shrink-0 mt-0.5" aria-hidden="true" />
+        <p className="text-xs text-blue-800">{CREDIT_CHECK_NOTE}</p>
       </div>
 
-      {/* Income */}
+      {/* Item 0: isNumeric=true — type="text" + inputMode="numeric", no scroll-jacking */}
       <FieldWithReason
         id="monthly_income"
-        label="Monthly take-home income (₹)"
-        type="number"
-        min="1"
-        inputMode="numeric"
+        label="Monthly take-home income"
+        isNumeric
         required
-        placeholder="e.g. 28000"
-        reason="We use your income to check whether the loan repayment would be affordable. We do not store your real salary information — this is a prototype using synthetic data."
+        placeholder="28000"
+        suffix="₹ / month"
+        reason="We use your income to check whether the loan repayment would be affordable. No real salary data is collected — this is a prototype."
         value={form.monthly_income}
         onChange={handleChange("monthly_income")}
         error={errors.monthly_income}
       />
 
-      {/* Employment tenure */}
       <FieldWithReason
         id="employment_tenure_months"
-        label="How long have you been in your current job? (months)"
-        type="number"
-        min="0"
-        inputMode="numeric"
+        label="Time in current job"
+        isNumeric
         required
-        placeholder="e.g. 18"
-        reason="Employment tenure is one of the inputs in the prototype eligibility model. Shorter tenure doesn't automatically disqualify you — it may trigger a review."
+        placeholder="18"
+        suffix="months"
+        reason="Employment tenure is one input in the prototype eligibility model. Short tenure may trigger review — not automatic rejection."
         value={form.employment_tenure_months}
         onChange={handleChange("employment_tenure_months")}
         error={errors.employment_tenure_months}
       />
 
-      {/* Loan amount */}
       <FieldWithReason
         id="requested_amount"
-        label="How much do you need to borrow? (₹)"
-        type="number"
-        min="1"
-        max="1000000"
-        inputMode="numeric"
+        label="How much do you need to borrow"
+        isNumeric
         required
-        placeholder="e.g. 30000"
-        reason="This is the loan principal — the amount you receive. We use it to calculate your monthly EMI and total repayment cost."
+        placeholder="30000"
+        suffix="₹"
+        reason="This is the loan principal. We use it to calculate your monthly EMI and total repayment cost."
         value={form.requested_amount}
         onChange={handleChange("requested_amount")}
         error={errors.requested_amount}
       />
 
-      {/* Loan tenure */}
+      {/* Tenure select — Item 2: one filled CTA */}
       <div className="flex flex-col gap-1.5">
-        <label
-          htmlFor="loan_tenure_months"
-          className="text-sm font-medium text-slate-800"
-        >
-          Repayment period{" "}
-          <span className="text-slate-500 font-normal">(months)</span>
+        <label htmlFor="loan_tenure_months" className="text-sm font-medium text-slate-800">
+          Repayment period
         </label>
         <select
           id="loan_tenure_months"
           value={form.loan_tenure_months}
           onChange={handleChange("loan_tenure_months")}
-          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           {TENURE_OPTIONS.map((t) => (
-            <option key={t} value={t}>
-              {t} months
-            </option>
+            <option key={t} value={t}>{t} months</option>
           ))}
         </select>
         <p className="text-xs text-slate-500">
-          Longer tenure = lower EMI, higher total interest. The preview below
-          updates as you change this.
+          Longer tenure = lower EMI, higher total interest.
         </p>
       </div>
 
-      {/* Existing EMI */}
       <FieldWithReason
         id="existing_monthly_emi"
-        label="Existing monthly EMI obligations (₹)"
-        type="number"
-        min="0"
-        inputMode="numeric"
+        label="Existing monthly EMI obligations"
+        isNumeric
         placeholder="0"
+        suffix="₹ / month"
         helpText="Enter 0 if you have no existing loans or EMIs."
-        reason="We add your existing obligations to the new EMI to calculate your total monthly repayment burden. This is called a debt-to-income check."
+        reason="We add your existing obligations to the new EMI to calculate your total monthly repayment burden — this is a debt-to-income check."
         value={form.existing_monthly_emi}
         onChange={handleChange("existing_monthly_emi")}
         error={errors.existing_monthly_emi}
       />
 
-      {/* Live EMI preview — AC-E3 */}
+      {/* Live preview */}
       {principal > 0 && tenure > 0 && (
         <LiveEmiPreview principal={principal} tenureMonths={tenure} />
       )}
 
-      {/* Form-level error — AC-10 (backend unavailable) */}
       {errors._form && (
-        <div role="alert" aria-live="assertive" className="rounded-xl bg-danger-50 border border-danger-200 px-4 py-3">
-          <p className="text-sm text-danger-600">{errors._form}</p>
+        <div role="alert" aria-live="assertive"
+          className="rounded-xl bg-red-50 border border-red-200 px-4 py-3">
+          <p className="text-sm text-red-600">{errors._form}</p>
         </div>
       )}
 
-      <Button
-        type="submit"
-        size="lg"
-        disabled={submitting}
-        className="w-full"
-      >
+      {/* Item 2: single filled primary CTA */}
+      <Button type="submit" size="lg" disabled={submitting} className="w-full">
         {submitting ? "Checking eligibility…" : "Check my eligibility"}
       </Button>
 
       <p className="text-xs text-center text-slate-500">
-        No account required. You&apos;ll receive a reference number to resume
-        later.
+        No account required. You'll get a reference number to resume later.
       </p>
     </form>
   );

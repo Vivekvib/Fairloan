@@ -2,68 +2,60 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, Clock, XCircle, ArrowRight } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
 import Button from "@/components/ui/button";
 import SaveTokenDisplay from "@/components/shared/SaveTokenDisplay";
-import RuleExplanationPanel from "@/components/eligibility/RuleExplanationPanel";
 import type { EligibilityResponse } from "@/lib/api";
 
-// Result state configuration — avoids a large conditional render block
 const RESULT_CONFIG = {
   likely_eligible: {
-    icon: CheckCircle2,
-    iconClass: "text-brand-600",
-    bgClass: "bg-brand-50 border-brand-200",
+    icon: CheckCircle2, iconClass: "text-blue-500",
+    bgClass: "bg-blue-50 border-blue-200",
     headline: "You may be eligible to apply.",
-    // AC-E6: no shame language, no urgency, no dark patterns
-    subtext:
-      "Based on the information you entered, this prototype check did not find any issues. This is not a loan approval — it is a preliminary check using prototype rules only.",
+    subtext: "Preliminary check passed. This is not a loan approval — prototype rules only.",
     primaryCta: { label: "Start your application", href: "/apply/consent" },
     secondaryCta: null,
   },
   needs_review: {
-    icon: Clock,
-    iconClass: "text-warning-600",
-    bgClass: "bg-warning-50 border-warning-200",
+    icon: Clock, iconClass: "text-amber-500",
+    bgClass: "bg-amber-50 border-amber-200",
     headline: "We need a little more information.",
-    subtext:
-      "One or more aspects of your entry are near the boundary of our prototype criteria. You can continue to a full application — no decision has been made yet.",
+    subtext: "One or more inputs are near a threshold. You can continue — no decision made yet.",
     primaryCta: { label: "Continue anyway", href: "/apply/consent" },
     secondaryCta: { label: "Go back and adjust", href: "/eligibility/check" },
   },
   not_progressed: {
-    icon: XCircle,
-    iconClass: "text-danger-600",
-    bgClass: "bg-danger-50 border-danger-200",
-    headline: "This prototype would not progress your application at this stage.",
-    subtext:
-      "Based on the information entered, the prototype rules did not progress this application. This is not a real credit decision and has not affected any credit bureau record.",
+    icon: XCircle, iconClass: "text-red-500",
+    bgClass: "bg-red-50 border-red-200",
+    headline: "This prototype would not progress your application.",
+    subtext: "Not a real credit decision. This has not affected any credit bureau record.",
     primaryCta: { label: "Return to home", href: "/" },
     secondaryCta: null,
   },
 };
 
+const RULE_LABELS: Record<string, string> = {
+  income_check: "Income check",
+  amount_check: "Loan amount check",
+  dti_check: "Repayment burden",
+  tenure_check: "Employment tenure",
+  repayment_check: "Repayment history",
+};
+
 export default function EligibilityResultPage() {
   const [result, setResult] = useState<EligibilityResponse | null>(null);
+  const [rulesOpen, setRulesOpen] = useState(false);
 
   useEffect(() => {
-    // Read result written by EligibilityForm before redirect
     const stored = sessionStorage.getItem("eligibility_result");
-    if (stored) {
-      setResult(JSON.parse(stored));
-      // Move focus to the result heading for screen readers — AC-9
-      document.getElementById("result-heading")?.focus();
-    }
+    if (stored) setResult(JSON.parse(stored));
   }, []);
 
   if (!result) {
     return (
-      <div className="max-w-xl mx-auto px-4 py-20 text-center text-slate-500 text-sm">
-        No eligibility result found.{" "}
-        <Link href="/eligibility/check" className="text-brand-700 underline">
-          Run the check
-        </Link>
-        .
+      <div className="max-w-xl mx-auto px-4 py-16 text-center text-slate-500 text-sm">
+        No result found.{" "}
+        <Link href="/eligibility/check" className="text-blue-600 underline">Run the check</Link>
       </div>
     );
   }
@@ -72,70 +64,76 @@ export default function EligibilityResultPage() {
   const Icon = config.icon;
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-12 flex flex-col gap-6">
-      {/* Result card */}
-      <div
-        className={`rounded-2xl border p-6 flex flex-col gap-4 ${config.bgClass}`}
-      >
-        <div className="flex items-start gap-3">
-          <Icon
-            size={28}
-            className={`${config.iconClass} shrink-0 mt-0.5`}
-            aria-hidden="true"
-          />
-          <div>
-            <h1
-              id="result-heading"
-              tabIndex={-1}
-              className="text-xl font-bold text-slate-900 mb-1 focus:outline-none"
-            >
-              {config.headline}
-            </h1>
-            <p className="text-sm text-slate-700 leading-relaxed">
-              {config.subtext}
-            </p>
-          </div>
-        </div>
+    <div className="max-w-2xl mx-auto px-4 py-8 flex flex-col gap-4">
 
-        {/* Primary reason for not_progressed and needs_review — AC-E4 */}
-        {result.result !== "likely_eligible" && (
-          <div className="bg-white rounded-xl px-4 py-3 border border-slate-200">
-            <p className="text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">
-              Primary reason
+      {/* Result card */}
+      <div className={`rounded-2xl border p-5 flex gap-4 items-start ${config.bgClass}`}>
+        <Icon size={24} className={`${config.iconClass} shrink-0 mt-0.5`} aria-hidden="true"/>
+        <div className="flex-1">
+          <h1 className="text-lg font-bold text-slate-900 mb-1">{config.headline}</h1>
+          <p className="text-sm text-slate-600">{config.subtext}</p>
+          {result.result !== "likely_eligible" && (
+            <div className="mt-3 bg-white/70 rounded-xl px-3 py-2 border border-white">
+              <p className="text-xs font-semibold text-slate-500 mb-0.5 uppercase tracking-wide">Primary reason</p>
+              <p className="text-sm text-slate-800">{result.primary_reason}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Rule explanation — collapsible */}
+      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+        <button
+          onClick={() => setRulesOpen(v => !v)}
+          className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition-colors text-left"
+          aria-expanded={rulesOpen}
+        >
+          <span className="text-sm font-medium text-slate-800">How is this calculated?</span>
+          {rulesOpen
+            ? <ChevronUp size={15} className="text-slate-400"/>
+            : <ChevronDown size={15} className="text-slate-400"/>}
+        </button>
+
+        {rulesOpen && (
+          <div className="border-t border-slate-100 px-4 py-3 flex flex-col gap-2 bg-slate-50">
+            <p className="text-xs text-slate-400 mb-1">
+              Thresholds not shown — prevents gaming. These are prototype rules only.
             </p>
-            <p className="text-sm text-slate-800">{result.primary_reason}</p>
+            {Object.entries(result.rule_explanation).map(([key, outcome]) => (
+              <div key={key} className={`rounded-xl px-3 py-2 border text-xs ${
+                outcome.result === "pass"   ? "bg-blue-50 border-blue-100 text-blue-800" :
+                outcome.result === "review" ? "bg-amber-50 border-amber-100 text-amber-800" :
+                                              "bg-red-50 border-red-100 text-red-800"
+              }`}>
+                <div className="flex justify-between mb-0.5">
+                  <span className="font-semibold">{RULE_LABELS[key] || key}</span>
+                  <span className="capitalize">{outcome.result}</span>
+                </div>
+                <p>{outcome.plain}</p>
+              </div>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Prototype disclaimer — AC-E5 */}
-      <div
-        role="note"
-        className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3"
-      >
-        <p className="text-xs text-amber-800">{result.prototype_disclaimer}</p>
-      </div>
-
-      {/* Rule explanation panel — AC-6 */}
-      <RuleExplanationPanel ruleExplanation={result.rule_explanation} />
-
-      {/* Save token — AC-7 */}
+      {/* Save token */}
       <SaveTokenDisplay token={result.save_token} />
 
+      {/* Prototype disclaimer — compact */}
+      <p className="text-xs text-slate-400 text-center px-4">
+        {result.prototype_disclaimer}
+      </p>
+
       {/* CTAs */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap gap-3">
         <Link href={config.primaryCta.href}>
-          <Button size="lg" className="w-full">
-            {config.primaryCta.label}
-            <ArrowRight size={18} className="ml-2" aria-hidden="true" />
+          <Button size="md">
+            {config.primaryCta.label} <ArrowRight size={15} className="ml-1.5"/>
           </Button>
         </Link>
-
         {config.secondaryCta && (
           <Link href={config.secondaryCta.href}>
-            <Button variant="secondary" size="lg" className="w-full">
-              {config.secondaryCta.label}
-            </Button>
+            <Button variant="secondary" size="md">{config.secondaryCta.label}</Button>
           </Link>
         )}
       </div>

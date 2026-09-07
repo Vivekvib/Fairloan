@@ -17,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen flex flex-col bg-slate-50" suppressHydrationWarning>
+      <body className="min-h-screen flex flex-col bg-slate-50">
         {/* Persistent disclaimer — never removed, never collapsible on key screens */}
         <PrototypeBanner />
         <Navbar />

@@ -1,30 +1,36 @@
 "use client";
 
+import { useState } from "react";
+import { X } from "lucide-react";
+
 /**
- * PrototypeBanner — persistent top strip on every page.
- *
- * Product principle P5 (Prototype honesty): this banner must never be
- * removed or made dismissible. It is the primary signal that this is an
- * educational prototype, not a real lending product.
+ * PrototypeBanner — Item 3: single-line, session-dismissible.
+ * Uses React state only — no localStorage — so it reappears on
+ * every new session. The prototype disclaimer page carries the full text.
  */
 export default function PrototypeBanner() {
+  const [dismissed, setDismissed] = useState(false);
+  if (dismissed) return null;
+
   return (
     <div
       role="banner"
       aria-label="Prototype disclaimer"
-      className="w-full bg-amber-50 border-b border-amber-200 px-4 py-2 text-center"
+      className="w-full bg-blue-950 border-b border-blue-800 px-4 py-2 flex items-center justify-between gap-4"
     >
-      <p className="text-xs text-amber-800 font-medium">
-        🎓 <strong>Educational Prototype</strong> — This is a portfolio project
-        using synthetic data only. No real loans, no real credit decisions, no
-        personal data collected.{" "}
-        <a
-          href="/disclaimer"
-          className="underline underline-offset-2 hover:text-amber-900"
-        >
-          Learn more
+      <p className="text-xs text-blue-300 flex-1 text-center">
+        🎓 <strong className="text-white">Educational prototype</strong> — synthetic data only, no real loans.{" "}
+        <a href="/disclaimer" className="underline underline-offset-2 hover:text-white transition-colors">
+          Full disclaimer
         </a>
       </p>
+      <button
+        onClick={() => setDismissed(true)}
+        aria-label="Dismiss prototype notice"
+        className="text-blue-400 hover:text-white transition-colors shrink-0"
+      >
+        <X size={14} aria-hidden="true" />
+      </button>
     </div>
   );
 }
