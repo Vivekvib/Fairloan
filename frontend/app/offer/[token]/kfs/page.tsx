@@ -11,7 +11,7 @@ import { ANNUAL_INTEREST_RATE } from "@/lib/constants";
 export default function KfsPage() {
   const { token } = useParams();
   const router    = useRouter();
-  const [loanData, setLoanData]     = useState(null);
+  const [loanData, setLoanData] = useState<Record<string, string> | null>(null);
   const [confirmed, setConfirmed]   = useState(false);
   const [timeOnPage, setTimeOnPage] = useState(0);
   const [submitting, setSubmitting] = useState(false);
