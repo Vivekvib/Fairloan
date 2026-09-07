@@ -13,7 +13,7 @@ const STATES = {
     bg: "bg-blue-50 border-blue-200",
     headline: "Your application has been progressed.",
     body: "Based on the prototype eligibility rules, your application has been reviewed and progressed to offer stage. This is not a real credit approval.",
-    primary: { label: "View your offer", href: (token) => `/offer/${token}` },
+    primary: { label: "View your offer", href: (token: string) => `/offer/${token}` },
     secondary: null,
   },
   needs_review: {
