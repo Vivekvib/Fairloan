@@ -13,7 +13,7 @@ import { ANNUAL_INTEREST_RATE } from "@/lib/constants";
 export default function AcceptPage() {
   const { token } = useParams();
   const router = useRouter();
-  const [loanData, setLoanData] = useState(null);
+  const [loanData, setLoanData] = useState<Record<string, string> | null>(null);
   const [accepted, setAccepted] = useState(false);
 
   useEffect(() => {

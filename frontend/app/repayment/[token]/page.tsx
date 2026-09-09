@@ -11,7 +11,7 @@ import { ANNUAL_INTEREST_RATE } from "@/lib/constants";
 
 export default function RepaymentPage() {
   const { token } = useParams();
-  const [loanData, setLoanData] = useState(null);
+  const [loanData, setLoanData] = useState<Record<string, string> | null>(null);
 
   useEffect(() => {
     const ld = sessionStorage.getItem("loan_data");
