@@ -102,6 +102,7 @@ export default function FieldWithReason({
           }
           aria-invalid={!!error}
           {...props}
+          type={isNumeric ? "text" : (props.type || "text")}
         />
         {/* Unit suffix label inside field — Item 6 */}
         {suffix && (

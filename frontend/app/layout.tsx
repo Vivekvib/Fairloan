@@ -7,7 +7,11 @@ import Footer from "@/components/layout/Footer";
 export const metadata: Metadata = {
   title: "FairLoan — Transparent Digital Lending Prototype",
   description:
-    "An educational fintech prototype demonstrating transparent, responsible digital lending. Synthetic data only. Not a real lending product.",
+    "A responsible lending reference design built on RBI Digital Lending Guidelines. Synthetic data only. Not a real lending product.",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -17,8 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen flex flex-col bg-slate-50">
-        {/* Persistent disclaimer — never removed, never collapsible on key screens */}
+      <body className="min-h-screen flex flex-col bg-slate-50" suppressHydrationWarning>
         <PrototypeBanner />
         <Navbar />
         <main className="flex-1">{children}</main>

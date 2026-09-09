@@ -14,21 +14,21 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  // Use dark navbar on home page to blend with hero
   const isDark = pathname === "/";
 
   return (
     <header className={clsx(
       "sticky top-0 z-40 border-b transition-colors",
-      isDark
-        ? "bg-[#0f1f3d] border-white/10"
-        : "bg-white border-slate-200"
+      isDark ? "bg-[#0f1f3d] border-white/10" : "bg-white border-slate-200"
     )}>
       <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-        <Link href="/" className={clsx(
-          "text-xl font-bold tracking-tight",
-          isDark ? "text-white" : "text-slate-900"
-        )}>
+        <Link
+          href="/"
+          className={clsx(
+            "text-lg font-bold tracking-tight",
+            isDark ? "text-white" : "text-slate-900"
+          )}
+        >
           Fair<span className={isDark ? "text-blue-400" : "text-blue-600"}>Loan</span>
         </Link>
 
@@ -40,12 +40,8 @@ export default function Navbar() {
               className={clsx(
                 "text-sm font-medium transition-colors",
                 isDark
-                  ? pathname === href
-                    ? "text-white"
-                    : "text-blue-200 hover:text-white"
-                  : pathname === href
-                    ? "text-blue-700 border-b-2 border-blue-600 pb-0.5"
-                    : "text-slate-600 hover:text-blue-700"
+                  ? pathname === href ? "text-white" : "text-blue-200 hover:text-white"
+                  : pathname === href ? "text-blue-700 border-b-2 border-blue-600 pb-0.5" : "text-slate-600 hover:text-slate-900"
               )}
             >
               {label}

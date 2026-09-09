@@ -1,6 +1,3 @@
-# 🌐 Live demo: https://frontend-ruby-ten-67.vercel.app
-# API: https://fairloan.onrender.com/docs
-
 # FairLoan — Transparent Digital Lending Prototype
 
 > ⚠️ **This is an educational portfolio prototype. It uses synthetic data only. No real loans, no real credit decisions, no real personal data is collected or processed. Not RBI-compliant. Not suitable for production.**
@@ -51,7 +48,7 @@ All data is synthetic. The `is_demo` flag is set to `true` on every record.
 ### 1. Clone and enter the repo
 
 ```bash
-git clone https://github.com/Vivekvib/fairloan.git
+git clone https://github.com/YOUR_USERNAME/fairloan.git
 cd fairloan
 ```
 
